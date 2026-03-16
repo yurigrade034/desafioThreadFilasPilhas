@@ -1,0 +1,61 @@
+import kotlin.collections.ArrayDeque
+import kotlin.concurrent.thread
+
+fun main() {
+    simulacaoSemaforo()
+}
+
+fun simulacaoSemaforo() {
+    val filaCarros = ArrayDeque<String>()
+    var estadoSemaforo = 0
+
+    println("---> Simulação de Semáforo <---")
+
+
+    thread {
+        var contador = 1
+        while (true) {
+            val nomeCarro = "Carro #$contador"
+            synchronized(filaCarros) {
+                filaCarros.addLast(nomeCarro)
+            }
+            println("[Chegada] $nomeCarro parou na fila.")
+            contador++
+            Thread.sleep((1000..2500).random().toLong())
+        }
+    }
+
+
+    thread {
+        while (true) {
+            estadoSemaforo = 0
+            println("\n🔴 SEMÁFORO VERMELHO - Aguarde 10s\n")
+            Thread.sleep(10000)
+
+            estadoSemaforo = 1
+            println("\n🟢 SEMÁFORO ABERTO - Siga por 5s\n")
+            Thread.sleep(5000)
+
+            estadoSemaforo = 2
+            println("\n🟡 SEMÁFORO AMARELO - Atenção! (2s)\n")
+            Thread.sleep(2000)
+        }
+    }
+
+
+    thread {
+        while (true) {
+            if (estadoSemaforo == 1) {
+                synchronized(filaCarros) {
+                    if (filaCarros.isNotEmpty()) {
+                        val saiu = filaCarros.removeFirst()
+                        println("[Saída] $saiu passou com sucesso.")
+                    }
+                }
+                Thread.sleep(1000)
+            } else {
+                Thread.sleep(100)
+            }
+        }
+    }
+}
